@@ -1,6 +1,6 @@
 {
   "name": "puppeteer-interceptor",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Makes intercepting and modifying traffic from Puppeteer easier",
   "main": "src/index.js",
   "scripts": {
