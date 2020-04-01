@@ -1,0 +1,28 @@
+{
+  "name": "puppeteer-interceptor",
+  "version": "0.1.0",
+  "description": "Makes intercepting and modifying traffic from Puppeteer easier",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "mocha test/**/*.test.js"
+  },
+  "keywords": [
+    "puppeteer",
+    "intercept",
+    "mitm"
+  ],
+  "author": "@jsoverson",
+  "license": "ISC",
+  "dependencies": {
+    "atob": "^2.1.2",
+    "btoa": "^1.2.1",
+    "debug": "^4.1.1",
+    "np": "^6.2.0"
+  },
+  "devDependencies": {
+    "mocha": "^7.1.1",
+    "puppeteer": "^2.1.1",
+    "serve": "^11.3.0",
+    "serve-handler": "^6.1.2"
+  }
+}
