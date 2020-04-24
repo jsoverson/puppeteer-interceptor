@@ -19,7 +19,7 @@ export namespace Interceptor {
   export interface OnInterceptionEvent extends Protocol.Fetch.RequestPausedEvent {}
 
   export interface EventHandlers {
-    onResponseReceived?: (event: OnResponseReceivedEvent) => InterceptedResponse | undefined;
+    onResponseReceived?: (event: OnResponseReceivedEvent) => InterceptedResponse | void;
     onInterception?: (event: OnInterceptionEvent, control: ControlCallbacks) => void;
   }
 
