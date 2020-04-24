@@ -2,16 +2,30 @@
   "name": "puppeteer-interceptor",
   "version": "0.1.0",
   "description": "Makes intercepting and modifying traffic from Puppeteer easier",
-  "main": "src/index.js",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
   "scripts": {
-    "test": "mocha test/**/*.test.js"
+    "build": "tsc",
+    "compile": "tsc --declaration",
+    "prepublishOnly": "npm run compile",
+    "format": "prettier --write 'src/**/*.ts' 'test/**/*.ts'",
+    "watch": "tsc -w",
+    "test": "mocha"
   },
   "keywords": [
     "puppeteer",
     "intercept",
     "mitm"
   ],
-  "author": "@jsoverson",
+  "author": {
+    "name": "Jarrod Overson",
+    "email": "jsoverson@gmail.com",
+    "url": "https://jarrodoverson.com"
+  },
+  "files": [
+    "README.md",
+    "dist/**/*"
+  ],
   "license": "ISC",
   "dependencies": {
     "atob": "^2.1.2",
@@ -20,9 +34,18 @@
     "np": "^6.2.0"
   },
   "devDependencies": {
+    "@types/atob": "^2.1.2",
+    "@types/btoa": "^1.2.3",
+    "@types/mocha": "^7.0.2",
+    "@types/node": "^13.13.2",
+    "@types/serve-handler": "^6.1.0",
+    "devtools-protocol": "0.0.761827",
     "mocha": "^7.1.1",
+    "prettier": "^2.0.5",
     "puppeteer": "^2.1.1",
     "serve": "^11.3.0",
-    "serve-handler": "^6.1.2"
+    "serve-handler": "^6.1.2",
+    "ts-node": "^8.9.0",
+    "typescript": "^3.8.3"
   }
 }

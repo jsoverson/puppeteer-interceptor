@@ -1,6 +1,6 @@
-const handler = require('serve-handler');
-const { createServer } = require('http');
-const path = require('path');
+import handler from 'serve-handler';
+import { createServer } from 'http';
+import path from 'path';
 
 const server = createServer((request, response) => {
   return handler(request, response, {
@@ -8,9 +8,10 @@ const server = createServer((request, response) => {
   });
 });
 
-exports.start = function(port, cb) {
+export function start(port: number, cb: any) {
   server.listen(port, cb);
-};
-exports.stop = function(cb) {
+}
+
+export function stop(cb: any) {
   server.close(cb);
-};
+}
