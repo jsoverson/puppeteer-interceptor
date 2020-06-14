@@ -42,7 +42,7 @@
     "devtools-protocol": "0.0.761827",
     "mocha": "^7.1.1",
     "prettier": "^2.0.5",
-    "puppeteer": "^2.1.1",
+    "puppeteer": "^3.3.0",
     "serve": "^11.3.0",
     "serve-handler": "^6.1.2",
     "ts-node": "^8.9.0",
