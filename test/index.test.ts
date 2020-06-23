@@ -83,6 +83,20 @@ describe('interceptor', function () {
     assert.equal(dynamicContents, 'Intercepted header');
   });
 
+  it('should support asynchronous transformers', async function () {
+    intercept(page, patterns.Script('*dynamic.js'), {
+      onResponseReceived: async (event: Interceptor.OnResponseReceivedEvent) => {
+        const value: string = await new Promise((resolve) => { setTimeout(() => resolve('Delayed'), 100) });
+        event.response.body = event.response.body.replace('Dynamic', value);
+        return event.response;
+      },
+    });
+    await page.goto(baseUrl, {});
+    const dynamicHeader = await page.$('#dynamic');
+    const dynamicContents = await page.evaluate((header) => header.innerHTML, dynamicHeader);
+    assert.equal(dynamicContents, 'Delayed header');
+  });
+
   it('should allow cancelling requests', async function () {
     intercept(page, patterns.Script('*'), {
       onInterception: (event: Interceptor.OnInterceptionEvent, { abort }: Interceptor.ControlCallbacks) => {

@@ -19,8 +19,8 @@ export namespace Interceptor {
   export interface OnInterceptionEvent extends Protocol.Fetch.RequestPausedEvent { }
 
   export interface EventHandlers {
-    onResponseReceived?: (event: OnResponseReceivedEvent) => InterceptedResponse | void;
-    onInterception?: (event: OnInterceptionEvent, control: ControlCallbacks) => void;
+    onResponseReceived?: (event: OnResponseReceivedEvent) => Promise<InterceptedResponse | void> | InterceptedResponse | void;
+    onInterception?: (event: OnInterceptionEvent, control: ControlCallbacks) => Promise<void> | void;
   }
 
   export interface ControlCallbacks {
@@ -63,7 +63,7 @@ export async function intercept(
         },
       };
 
-      eventHandlers.onInterception(event, control);
+      await eventHandlers.onInterception(event, control);
       if (!shouldContinue) {
         debug(`Aborting request ${requestId} with reason "${errorReason}"`);
         await client.send('Fetch.failRequest', { requestId, errorReason });
@@ -88,7 +88,7 @@ export async function intercept(
           errorReason: event.responseErrorReason,
           statusCode: event.responseStatusCode,
         };
-        newResponse = eventHandlers.onResponseReceived({ response, request });
+        newResponse = await eventHandlers.onResponseReceived({ response, request });
       }
     }
 
