@@ -3,7 +3,7 @@ import btoa from 'btoa';
 
 import DEBUG from 'debug';
 import Protocol from 'devtools-protocol';
-import { Page } from 'puppeteer';
+import { Page } from 'puppeteer/lib/Page';
 
 const debug = DEBUG('puppeteer-interceptor');
 
@@ -16,7 +16,7 @@ export namespace Interceptor {
     response: InterceptedResponse;
   }
 
-  export interface OnInterceptionEvent extends Protocol.Fetch.RequestPausedEvent {}
+  export interface OnInterceptionEvent extends Protocol.Fetch.RequestPausedEvent { }
 
   export interface EventHandlers {
     onResponseReceived?: (event: OnResponseReceivedEvent) => InterceptedResponse | void;
@@ -54,10 +54,10 @@ export async function intercept(
     debug(`Request ${event.request.url} (${requestId}) paused.`);
 
     if (eventHandlers.onInterception) {
-      let errorReason = '';
+      let errorReason: Protocol.Network.ErrorReason = 'Aborted';
       let shouldContinue = true;
       const control = {
-        abort: (msg: string) => {
+        abort: (msg: Protocol.Network.ErrorReason) => {
           shouldContinue = false;
           errorReason = msg;
         },

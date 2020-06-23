@@ -1,4 +1,5 @@
-import { Browser, Page } from 'puppeteer';
+import { Browser } from 'puppeteer/lib/Browser';
+import { Page } from 'puppeteer/lib/Page';
 import { Interceptor, patterns, intercept } from '../src';
 
 import assert from 'assert';
@@ -32,7 +33,7 @@ describe('interceptor', function () {
   });
 
   it('should not cause problems on the page', async function () {
-    await page.goto(baseUrl);
+    await page.goto(baseUrl, {});
     intercept(page, patterns.All('*'));
     const title = await page.title();
     assert.equal(title, 'Test page');
@@ -52,7 +53,7 @@ describe('interceptor', function () {
         onInterception: resolve,
       });
     });
-    await page.goto(baseUrl);
+    await page.goto(baseUrl, {});
     return promise;
   });
 
@@ -65,7 +66,7 @@ describe('interceptor', function () {
         },
       } as Interceptor.EventHandlers);
     });
-    await page.goto(baseUrl);
+    await page.goto(baseUrl, {});
     return promise;
   });
 
@@ -76,7 +77,7 @@ describe('interceptor', function () {
         return event.response;
       },
     });
-    await page.goto(baseUrl);
+    await page.goto(baseUrl, {});
     const dynamicHeader = await page.$('#dynamic');
     const dynamicContents = await page.evaluate((header) => header.innerHTML, dynamicHeader);
     assert.equal(dynamicContents, 'Intercepted header');
@@ -88,7 +89,7 @@ describe('interceptor', function () {
         if (event.request.url.match('dynamic.js')) abort('Aborted');
       },
     } as Interceptor.EventHandlers);
-    await page.goto(baseUrl);
+    await page.goto(baseUrl, {});
     const dynamicHeader = await page.$('#dynamic');
     const dynamicContents = await page.evaluate((header) => header.innerHTML, dynamicHeader);
     assert.equal(dynamicContents, 'Unmodified header');
