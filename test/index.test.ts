@@ -1,9 +1,11 @@
-import puppeteer, { Browser, Page } from 'puppeteer';
+import puppeteer from 'puppeteer/lib/cjs';
 import { Interceptor, patterns, intercept } from '../src';
 
 import assert from 'assert';
 
 import { start, TestServer } from '@jsoverson/test-server';
+import { Browser } from 'puppeteer/lib/cjs/common/Browser';
+import { Page } from 'puppeteer/lib/cjs/common/Page';
 
 describe('interceptor', function () {
   let browser: Browser, context, page: Page;
@@ -35,11 +37,11 @@ describe('interceptor', function () {
     assert.equal(title, 'Test page');
 
     const staticHeader = await page.$('h1');
-    const headerContents = await page.evaluate((header) => header.innerHTML, staticHeader);
+    const headerContents = await page.evaluate((header: any) => header.innerHTML, staticHeader);
     assert.equal(headerContents, 'Test header');
 
     const dynamicHeader = await page.$('#dynamic');
-    const dynamicContents = await page.evaluate((header) => header.innerHTML, dynamicHeader);
+    const dynamicContents = await page.evaluate((header: any) => header.innerHTML, dynamicHeader);
     assert.equal(dynamicContents, 'Dynamic header');
   });
 
@@ -111,7 +113,7 @@ describe('interceptor', function () {
     });
     await page.goto(server.url('index.html'), {});
     const dynamicHeader = await page.$('#dynamic');
-    const dynamicContents = await page.evaluate((header) => header.innerHTML, dynamicHeader);
+    const dynamicContents = await page.evaluate((header: any) => header.innerHTML, dynamicHeader);
     assert.equal(dynamicContents, 'Intercepted header');
   });
 
@@ -127,7 +129,7 @@ describe('interceptor', function () {
     });
     await page.goto(server.url('index.html'), {});
     const dynamicHeader = await page.$('#dynamic');
-    const dynamicContents = await page.evaluate((header) => header.innerHTML, dynamicHeader);
+    const dynamicContents = await page.evaluate((header: any) => header.innerHTML, dynamicHeader);
     assert.equal(dynamicContents, 'Delayed header');
   });
 
@@ -139,7 +141,7 @@ describe('interceptor', function () {
     } as Interceptor.EventHandlers);
     await page.goto(server.url('index.html'), {});
     const dynamicHeader = await page.$('#dynamic');
-    const dynamicContents = await page.evaluate((header) => header.innerHTML, dynamicHeader);
+    const dynamicContents = await page.evaluate((header: any) => header.innerHTML, dynamicHeader);
     assert.equal(dynamicContents, 'Unmodified header');
   });
 });

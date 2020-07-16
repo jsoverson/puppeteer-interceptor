@@ -3,7 +3,8 @@ import btoa from 'btoa';
 
 import DEBUG from 'debug';
 import Protocol from 'devtools-protocol';
-import { Page, CDPSession } from 'puppeteer';
+import { Page } from 'puppeteer/lib/cjs/common/Page';
+import { CDPSession } from 'puppeteer/lib/cjs/common/Connection';
 
 const debug = DEBUG('puppeteer-interceptor');
 
@@ -26,7 +27,7 @@ export namespace Interceptor {
   }
 
   export interface ControlCallbacks {
-    abort: (msg: string) => void;
+    abort: (msg: Protocol.Network.ErrorReason) => void;
   }
 
   export interface InterceptedResponse {
@@ -61,14 +62,14 @@ export class InterceptionHandler {
     this.disabled = false;
   }
   async initialize() {
-    this.client = await this.page.target().createCDPSession();
-    await this.client.send('Fetch.enable', { patterns: this.patterns });
-    this.client.on('Fetch.requestPaused', async (event: Protocol.Fetch.RequestPausedEvent) => {
+    const client = await this.page.target().createCDPSession();
+    await client.send('Fetch.enable', { patterns: this.patterns });
+    client.on('Fetch.requestPaused', async (event: Protocol.Fetch.RequestPausedEvent) => {
       const { requestId, request } = event;
 
       if (this.disabled) {
         debug(`Interception handler disabled, continuing request.`);
-        await this.client.send('Fetch.continueRequest', { requestId });
+        await client.send('Fetch.continueRequest', { requestId });
         return;
       }
 
@@ -87,7 +88,7 @@ export class InterceptionHandler {
         await this.eventHandlers.onInterception(event, control);
         if (!shouldContinue) {
           debug(`Aborting request ${requestId} with reason "${errorReason}"`);
-          await this.client.send('Fetch.failRequest', { requestId, errorReason });
+          await client.send('Fetch.failRequest', { requestId, errorReason });
           return;
         }
       }
@@ -100,7 +101,7 @@ export class InterceptionHandler {
             `Warning: onResponseReceived handler passed but ${requestId} intercepted at Request stage. Handler can not be called.`,
           );
         } else {
-          const responseCdp = (await this.client.send('Fetch.getResponseBody', {
+          const responseCdp = (await client.send('Fetch.getResponseBody', {
             requestId,
           })) as Protocol.Fetch.GetResponseBodyResponse;
           const response: Interceptor.InterceptedResponse = {
@@ -115,7 +116,7 @@ export class InterceptionHandler {
 
       if (newResponse) {
         debug(`Fulfilling request ${requestId} with response returned from onResponseReceived`);
-        await this.client.send('Fetch.fulfillRequest', {
+        await client.send('Fetch.fulfillRequest', {
           requestId,
           responseCode: newResponse.statusCode,
           responseHeaders: newResponse.headers,
@@ -123,7 +124,7 @@ export class InterceptionHandler {
           responsePhrase: newResponse.statusMessage,
         });
       } else {
-        await this.client.send('Fetch.continueRequest', { requestId });
+        await client.send('Fetch.continueRequest', { requestId });
       }
     });
   }

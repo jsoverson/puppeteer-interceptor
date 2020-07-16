@@ -36,6 +36,7 @@
     "@jsoverson/test-server": "^1.1.1",
     "@types/atob": "^2.1.2",
     "@types/btoa": "^1.2.3",
+    "@types/debug": "^4.1.5",
     "@types/mocha": "^7.0.2",
     "@types/node": "^13.13.2",
     "@types/serve-handler": "^6.1.0",
