@@ -1,22 +1,17 @@
-import { Browser } from 'puppeteer/lib/Browser';
-import { Page } from 'puppeteer/lib/Page';
+import puppeteer, { Browser, Page } from 'puppeteer';
 import { Interceptor, patterns, intercept } from '../src';
 
 import assert from 'assert';
-import puppeteer from 'puppeteer';
 
-import { start, stop } from './server';
+import { start, TestServer } from '@jsoverson/test-server';
 
 describe('interceptor', function () {
   let browser: Browser, context, page: Page;
-  const port = 5599;
-  let baseUrl = `http://127.0.0.1:${port}/`;
+  let server: TestServer;
 
-  before((done) => {
-    puppeteer.launch().then((b: Browser) => {
-      browser = b;
-      start(port, done);
-    });
+  before(async () => {
+    browser = await puppeteer.launch({ headless: true });
+    server = await start(__dirname, 'server_root');
   });
 
   beforeEach(async () => {
@@ -28,12 +23,13 @@ describe('interceptor', function () {
     return page.close();
   });
 
-  after((done) => {
-    browser.close().then((_) => stop(done));
+  after(async () => {
+    await browser.close();
+    await server.stop();
   });
 
   it('should not cause problems on the page', async function () {
-    await page.goto(baseUrl, {});
+    await page.goto(server.url('index.html'), {});
     intercept(page, patterns.All('*'));
     const title = await page.title();
     assert.equal(title, 'Test page');
@@ -53,8 +49,44 @@ describe('interceptor', function () {
         onInterception: resolve,
       });
     });
-    await page.goto(baseUrl, {});
+    await page.goto(server.url('index.html'), {});
     return promise;
+  });
+
+  it('should support adding multiple, unique interceptors', async function () {
+    let dynamicIntercepted = 0;
+    let consoleIntercepted = 0;
+    intercept(page, patterns.Script('*dynamic.js'), {
+      onResponseReceived: () => {
+        dynamicIntercepted++;
+      },
+    });
+    intercept(page, patterns.Script('*console.js'), {
+      onResponseReceived: () => {
+        consoleIntercepted++;
+      },
+    });
+    await page.setCacheEnabled(false);
+    await page.goto(server.url('index.html'), {});
+    assert.equal(dynamicIntercepted, 1);
+    assert.equal(consoleIntercepted, 1);
+  });
+
+  it('should support removing interceptions', async function () {
+    let timesCalled = 0;
+    const pattern = patterns.Script('*dynamic.js');
+    const handlers = {
+      onResponseReceived: () => {
+        timesCalled++;
+      },
+    };
+    const handler = await intercept(page, pattern, handlers);
+    await page.setCacheEnabled(false);
+    await page.goto(server.url('index.html'), {});
+    assert.equal(timesCalled, 1);
+    handler.disable();
+    await page.goto(server.url('index.html'), {});
+    assert.equal(timesCalled, 1);
   });
 
   it('should pass response to onResponseReceived', async function () {
@@ -66,7 +98,7 @@ describe('interceptor', function () {
         },
       } as Interceptor.EventHandlers);
     });
-    await page.goto(baseUrl, {});
+    await page.goto(server.url('index.html'), {});
     return promise;
   });
 
@@ -77,7 +109,7 @@ describe('interceptor', function () {
         return event.response;
       },
     });
-    await page.goto(baseUrl, {});
+    await page.goto(server.url('index.html'), {});
     const dynamicHeader = await page.$('#dynamic');
     const dynamicContents = await page.evaluate((header) => header.innerHTML, dynamicHeader);
     assert.equal(dynamicContents, 'Intercepted header');
@@ -86,12 +118,14 @@ describe('interceptor', function () {
   it('should support asynchronous transformers', async function () {
     intercept(page, patterns.Script('*dynamic.js'), {
       onResponseReceived: async (event: Interceptor.OnResponseReceivedEvent) => {
-        const value: string = await new Promise((resolve) => { setTimeout(() => resolve('Delayed'), 100) });
+        const value: string = await new Promise((resolve) => {
+          setTimeout(() => resolve('Delayed'), 100);
+        });
         event.response.body = event.response.body.replace('Dynamic', value);
         return event.response;
       },
     });
-    await page.goto(baseUrl, {});
+    await page.goto(server.url('index.html'), {});
     const dynamicHeader = await page.$('#dynamic');
     const dynamicContents = await page.evaluate((header) => header.innerHTML, dynamicHeader);
     assert.equal(dynamicContents, 'Delayed header');
@@ -103,7 +137,7 @@ describe('interceptor', function () {
         if (event.request.url.match('dynamic.js')) abort('Aborted');
       },
     } as Interceptor.EventHandlers);
-    await page.goto(baseUrl, {});
+    await page.goto(server.url('index.html'), {});
     const dynamicHeader = await page.$('#dynamic');
     const dynamicContents = await page.evaluate((header) => header.innerHTML, dynamicHeader);
     assert.equal(dynamicContents, 'Unmodified header');
