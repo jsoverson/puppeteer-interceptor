@@ -1,11 +1,11 @@
-import puppeteer from 'puppeteer/lib/cjs';
+import puppeteer from 'puppeteer/lib/cjs/puppeteer';
 import { Interceptor, patterns, intercept } from '../src';
 
 import assert from 'assert';
 
 import { start, TestServer } from '@jsoverson/test-server';
-import { Browser } from 'puppeteer/lib/cjs/common/Browser';
-import { Page } from 'puppeteer/lib/cjs/common/Page';
+import { Browser } from 'puppeteer/lib/cjs/puppeteer/common/Browser';
+import { Page } from 'puppeteer/lib/cjs/puppeteer/common/Page';
 
 describe('interceptor', function () {
   let browser: Browser, context, page: Page;

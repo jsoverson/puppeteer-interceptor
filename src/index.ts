@@ -3,8 +3,8 @@ import btoa from 'btoa';
 
 import DEBUG from 'debug';
 import Protocol from 'devtools-protocol';
-import { Page } from 'puppeteer/lib/cjs/common/Page';
-import { CDPSession } from 'puppeteer/lib/cjs/common/Connection';
+import { Page } from 'puppeteer/lib/cjs/puppeteer/common/Page';
+import { CDPSession } from 'puppeteer/lib/cjs/puppeteer/common/Connection';
 
 const debug = DEBUG('puppeteer-interceptor');
 
