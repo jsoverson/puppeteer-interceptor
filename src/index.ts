@@ -26,8 +26,16 @@ export namespace Interceptor {
     onInterception?: (event: OnInterceptionEvent, control: ControlCallbacks) => Promise<void> | void;
   }
 
+  export interface ResponseOptions {
+      responseHeaders?: Protocol.Fetch.HeaderEntry[];
+      binaryResponseHeaders?: string;
+      body?: string
+      responsePhrase?: string
+  }
+
   export interface ControlCallbacks {
     abort: (msg: Protocol.Network.ErrorReason) => void;
+    fulfill: (responseCode: number, responseOptions?: ResponseOptions) => void
   }
 
   export interface InterceptedResponse {
@@ -78,11 +86,18 @@ export class InterceptionHandler {
       if (this.eventHandlers.onInterception) {
         let errorReason: Protocol.Network.ErrorReason = 'Aborted';
         let shouldContinue = true;
+        let fulfill: undefined | (() => Promise<void>) = undefined
         const control = {
           abort: (msg: Protocol.Network.ErrorReason) => {
             shouldContinue = false;
             errorReason = msg;
           },
+          fulfill: (responseCode: number, responseOptions?: Interceptor.ResponseOptions): void => {
+            fulfill = async () => {
+                debug(`Fulfilling request ${requestId} with responseCode "${responseCode}"`);
+                await client.send('Fetch.fulfillRequest', { requestId, responseCode, ...responseOptions })
+            }
+          }
         };
 
         await this.eventHandlers.onInterception(event, control);
@@ -90,6 +105,9 @@ export class InterceptionHandler {
           debug(`Aborting request ${requestId} with reason "${errorReason}"`);
           await client.send('Fetch.failRequest', { requestId, errorReason });
           return;
+        } else if (fulfill) {
+            await fulfill!()
+            return;
         }
       }
 
