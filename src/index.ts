@@ -5,6 +5,8 @@ import DEBUG from 'debug';
 import Protocol from 'devtools-protocol';
 import { Page } from 'puppeteer/lib/cjs/puppeteer/common/Page';
 import { CDPSession } from 'puppeteer/lib/cjs/puppeteer/common/Connection';
+import pick from 'lodash.pick';
+import { encode } from 'punycode';
 
 const debug = DEBUG('puppeteer-interceptor');
 
@@ -27,15 +29,16 @@ export namespace Interceptor {
   }
 
   export interface ResponseOptions {
-      responseHeaders?: Protocol.Fetch.HeaderEntry[];
-      binaryResponseHeaders?: string;
-      body?: string
-      responsePhrase?: string
+    responseHeaders?: Protocol.Fetch.HeaderEntry[];
+    binaryResponseHeaders?: string;
+    body?: string;
+    responsePhrase?: string;
+    encodedBody?: string;
   }
 
   export interface ControlCallbacks {
     abort: (msg: Protocol.Network.ErrorReason) => void;
-    fulfill: (responseCode: number, responseOptions?: ResponseOptions) => void
+    fulfill: (responseCode: number, responseOptions?: ResponseOptions) => void;
   }
 
   export interface InterceptedResponse {
@@ -86,18 +89,28 @@ export class InterceptionHandler {
       if (this.eventHandlers.onInterception) {
         let errorReason: Protocol.Network.ErrorReason = 'Aborted';
         let shouldContinue = true;
-        let fulfill: undefined | (() => Promise<void>) = undefined
+        let fulfill: undefined | (() => Promise<void>) = undefined;
         const control = {
           abort: (msg: Protocol.Network.ErrorReason) => {
             shouldContinue = false;
             errorReason = msg;
           },
           fulfill: (responseCode: number, responseOptions?: Interceptor.ResponseOptions): void => {
-            fulfill = async () => {
-                debug(`Fulfilling request ${requestId} with responseCode "${responseCode}"`);
-                await client.send('Fetch.fulfillRequest', { requestId, responseCode, ...responseOptions })
+            const fulfillOptions: Protocol.Fetch.FulfillRequestRequest = {
+              requestId,
+              responseCode,
+            };
+            if (responseOptions) {
+              const keys = ['body', 'binaryResponseHeaders', 'responseHeaders', 'responsePhrase'];
+              Object.assign(fulfillOptions, pick(responseOptions, keys));
+              if (fulfillOptions.body) fulfillOptions.body = btoa(fulfillOptions.body);
+              if (responseOptions.encodedBody) fulfillOptions.body = responseOptions.encodedBody;
             }
-          }
+            fulfill = async () => {
+              debug(`Fulfilling request ${requestId} with responseCode "${responseCode}"`);
+              await client.send('Fetch.fulfillRequest', fulfillOptions);
+            };
+          },
         };
 
         await this.eventHandlers.onInterception(event, control);
@@ -106,8 +119,8 @@ export class InterceptionHandler {
           await client.send('Fetch.failRequest', { requestId, errorReason });
           return;
         } else if (fulfill) {
-            await fulfill!()
-            return;
+          await fulfill!();
+          return;
         }
       }
 

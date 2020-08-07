@@ -28,25 +28,25 @@
   ],
   "license": "ISC",
   "dependencies": {
-    "atob": "^2.1.2",
-    "btoa": "^1.2.1",
-    "debug": "^4.1.1"
+    "atob": "2.1.2",
+    "btoa": "1.2.1",
+    "debug": "4.1.1",
+    "lodash.pick": "^4.4.0"
   },
   "devDependencies": {
-    "@jsoverson/test-server": "^1.1.1",
-    "@types/atob": "^2.1.2",
-    "@types/btoa": "^1.2.3",
-    "@types/debug": "^4.1.5",
-    "@types/mocha": "^7.0.2",
-    "@types/node": "^13.13.2",
-    "@types/serve-handler": "^6.1.0",
+    "@jsoverson/test-server": "1.1.1",
+    "@types/atob": "2.1.2",
+    "@types/btoa": "1.2.3",
+    "@types/debug": "4.1.5",
+    "@types/lodash.pick": "^4.4.6",
+    "@types/mocha": "7.0.2",
+    "@types/node": "13.13.2",
+    "@types/serve-handler": "6.1.0",
     "devtools-protocol": "0.0.761827",
-    "mocha": "^7.1.1",
-    "prettier": "^2.0.5",
+    "mocha": "7.1.1",
+    "prettier": "2.0.5",
     "puppeteer": "5.2.1",
-    "serve": "^11.3.0",
-    "serve-handler": "^6.1.2",
-    "ts-node": "^8.9.0",
-    "typescript": "^3.8.3"
+    "ts-node": "8.9.0",
+    "typescript": "3.8.3"
   }
 }

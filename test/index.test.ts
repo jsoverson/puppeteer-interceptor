@@ -144,4 +144,16 @@ describe('interceptor', function () {
     const dynamicContents = await page.evaluate((header: any) => header.innerHTML, dynamicHeader);
     assert.equal(dynamicContents, 'Unmodified header');
   });
+
+  it('should allow fulfilling requests', async function () {
+    const randomString = Math.random().toString(16);
+    intercept(page, patterns.Document('*'), {
+      onInterception: (event: Interceptor.OnInterceptionEvent, { fulfill }: Interceptor.ControlCallbacks) => {
+        fulfill(200, { body: randomString });
+      },
+    } as Interceptor.EventHandlers);
+    await page.goto(server.url('index.html'), {});
+    const content = await page.content();
+    assert(content.match(randomString), `content (${content}) should match ${randomString}`);
+  });
 });
