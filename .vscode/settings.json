@@ -1,0 +1,10 @@
+{
+  "mochaExplorer.env": {
+    "DEBUG": "puppeteer-interceptor*"
+  },
+  "mochaExplorer.exit": true,
+  "mochaExplorer.files": "test/**/*.test.ts",
+  "mochaExplorer.require": "ts-node/register",
+  "mochaExplorer.debuggerConfig": "Debug Mocha Tests",
+  "debug.javascript.usePreview": false
+}
